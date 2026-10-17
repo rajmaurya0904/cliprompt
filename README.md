@@ -24,7 +24,7 @@ pip install -e ".[dev]"
 
 ## Limitations
 
-<!-- Honest and short: what it does NOT do, known gaps. -->
+Currently, cliprompt supports Bash and Zsh shells. It does not yet support Fish or PowerShell. The tool reads your local shell history to generate suggestions, which remains private and is not transmitted externally. However, it does not analyze the content of commands for sensitive information beyond what is necessary for completion suggestions.
 
 ## Development
 
