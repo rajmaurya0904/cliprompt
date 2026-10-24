@@ -186,3 +186,31 @@ def test_python_dash_m_entry_point(hist, tmp_path):
     )
     assert done.returncode == 0
     assert done.stdout.splitlines()[0] == "git status"
+
+
+def test_explicit_shell_overrides_detection(tmp_path, capsys):
+    path = tmp_path / "history.txt"  # name gives no hint
+    path.write_text("- cmd: cargo test\n  when: 1700000000\n- cmd: cargo build\n  when: 1700000001\n")
+    code, out, _ = run(["-f", str(path), "-s", "fish", "--no-git", "--cwd", str(tmp_path)], capsys)
+    assert code == 0 and out.splitlines() == ["cargo build", "cargo test"]
+
+
+def test_powershell_history_through_the_cli(tmp_path, capsys):
+    path = tmp_path / "ConsoleHost_history.txt"
+    path.write_text("dotnet build\nGet-Process\ndotnet build\n")
+    _, out, _ = run(["-f", str(path), "--last", "", "--no-git", "--cwd", str(tmp_path)], capsys)
+    assert out.splitlines()[0] == "dotnet build"
+
+
+def test_auto_format_is_plain_when_not_a_tty(hist, capsys, tmp_path):
+    _, out, _ = run(["-f", hist, "--format", "auto", "--no-git", "--cwd", str(tmp_path)], capsys)
+    assert "\033" not in out
+
+
+def test_no_color_env_disables_auto_colour(hist, capsys, tmp_path, monkeypatch):
+    monkeypatch.setenv("NO_COLOR", "1")
+    monkeypatch.setattr("sys.stdout.isatty", lambda: True, raising=False)
+    from cliprompt.cli import _wants_color
+
+    assert _wants_color("auto") is False
+    assert _wants_color("color") is True
