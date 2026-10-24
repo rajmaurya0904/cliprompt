@@ -190,8 +190,11 @@ def test_python_dash_m_entry_point(hist, tmp_path):
 
 def test_explicit_shell_overrides_detection(tmp_path, capsys):
     path = tmp_path / "history.txt"  # name gives no hint
-    path.write_text("- cmd: cargo test\n  when: 1700000000\n- cmd: cargo build\n  when: 1700000001\n")
-    code, out, _ = run(["-f", str(path), "-s", "fish", "--no-git", "--cwd", str(tmp_path)], capsys)
+    path.write_text(
+        "- cmd: cargo test\n  when: 1700000000\n- cmd: cargo build\n  when: 1700000001\n"
+    )
+    args = ["-f", str(path), "-s", "fish", "--no-git", "--cwd", str(tmp_path)]
+    code, out, _ = run(args, capsys)
     assert code == 0 and out.splitlines() == ["cargo build", "cargo test"]
 
 
