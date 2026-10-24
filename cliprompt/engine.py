@@ -128,7 +128,7 @@ def _git_adjust(command: str, git: Mapping[str, Any]) -> tuple[float, list[str]]
     if git.get("behind") and sub in {"pull", "merge", "rebase"}:
         add(0.9, f"{git['behind']} commit(s) behind upstream")
     if git.get("dirty") is False and sub in {"commit", "add"}:
-        add(-0.6, "working tree is clean")
+        add(-2.5 if sub == "commit" else -1.0, "working tree is clean")
     branch = git.get("branch")
     if branch and branch in parts[2:]:
         add(0.5, f"mentions branch {branch}")
@@ -186,6 +186,7 @@ def rank(
     counts: Counter[str] = Counter(commands)
     last_seen = {cmd: index for index, cmd in enumerate(commands)}
     followers: Counter[str] = Counter()
+    last_total = counts.get(last_command, 0)
     if last_command:
         for before, after in zip(commands, commands[1:], strict=False):
             if before == last_command:
@@ -221,7 +222,9 @@ def rank(
         reasons.extend(why)
 
         if followers[command]:
-            score += 1.2 * math.log2(1 + followers[command])
+            # share of the time this command came right after the last one, damped when rare
+            share = followers[command] / max(last_total, 1)
+            score += 2.5 * share * (1 - 0.5 ** followers[command])
             reasons.append(f"often follows `{last_command}`")
         dir_name = context.get("dir_name")
         if dir_name and len(dir_name) > 2 and dir_name in command:

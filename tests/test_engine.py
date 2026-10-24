@@ -169,3 +169,18 @@ def test_to_dict_shape():
     item = rank(["make test", "make test"], {})[0].to_dict()
     assert set(item) == {"command", "score", "count", "reasons"}
     assert item["count"] == 2 and "used 2x" in item["reasons"]
+
+
+def test_clean_tree_outweighs_a_strong_sequence():
+    history = ["git add -A", "git commit -m x"] * 5 + ["git status", "git add -A"]
+    ctx = {
+        "last_command": "git add -A",
+        "git": {"is_repo": True, "dirty": False, "staged": 0, "branch": "main"},
+    }
+    assert suggest(history, ctx)[0] != "git commit -m x"
+
+
+def test_rare_sequences_are_damped():
+    history = ["make", "make test", "make", "make", "make", "make"]
+    ranked = rank(history, {"last_command": "make"})
+    assert ranked[0].command == "make"
