@@ -56,7 +56,10 @@ def test_zsh_plain_lines_and_continuation():
 
 
 def test_fish_format_with_when():
-    text = "- cmd: git status\n  when: 1700000000\n- cmd: echo a\\nb\n  when: 1700000050\n  paths:\n    - x\n"
+    text = (
+        "- cmd: git status\n  when: 1700000000\n"
+        "- cmd: echo a\\nb\n  when: 1700000050\n  paths:\n    - x\n"
+    )
     entries = parse_fish(text)
     assert [(e.command, e.timestamp) for e in entries] == [
         ("git status", 1700000000),
