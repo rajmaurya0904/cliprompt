@@ -184,3 +184,9 @@ def test_rare_sequences_are_damped():
     history = ["make", "make test", "make", "make", "make", "make"]
     ranked = rank(history, {"last_command": "make"})
     assert ranked[0].command == "make"
+
+
+def test_amend_is_still_allowed_on_a_clean_tree():
+    ctx = {"git": {"is_repo": True, "dirty": False, "staged": 0, "branch": "main"}}
+    ranked = rank(["git commit --amend --no-edit", "git commit -m x"], ctx)
+    assert ranked[0].command == "git commit --amend --no-edit"

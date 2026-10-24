@@ -128,7 +128,10 @@ def _git_adjust(command: str, git: Mapping[str, Any]) -> tuple[float, list[str]]
     if git.get("behind") and sub in {"pull", "merge", "rebase"}:
         add(0.9, f"{git['behind']} commit(s) behind upstream")
     if git.get("dirty") is False and sub in {"commit", "add"}:
-        add(-2.5 if sub == "commit" else -1.0, "working tree is clean")
+        if sub == "commit" and not {"--amend", "--allow-empty"} & set(parts):
+            add(-4.0, "nothing to commit, working tree is clean")
+        elif sub == "add":
+            add(-1.0, "working tree is clean")
     branch = git.get("branch")
     if branch and branch in parts[2:]:
         add(0.5, f"mentions branch {branch}")
