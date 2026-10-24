@@ -1,85 +1,53 @@
-# Usage Examples
+# Usage examples
 
-This file demonstrates advanced configuration and workflow patterns for **Cliprompt**.
+All of these use the sample history in this folder, so you can run them as they are.
 
-## 1. Custom Prompt Template
-
-Cliprompt allows you to override the default prompt that is sent to Claude.  The
-`--prompt-template` flag accepts a Jinja‑style template.  The template can refer to
-variables that are automatically populated by the engine:
-
-* `history` – a list of the last *N* commands.
-* `cwd` – the current working directory.
-* `env` – a dictionary of environment variables.
+## Try it on the sample history
 
 ```bash
-cliprompt --prompt-template "{{ cwd }}$ {{ history[-1] }}"
+cliprompt -f examples/zsh_history_sample                 # best commands for this directory
+cliprompt -f examples/zsh_history_sample --explain       # with the reasons
+cliprompt -f examples/zsh_history_sample -- git c        # complete "git c"
 ```
 
-The above will ask Claude to continue the last command in the current directory.
-
-## 2. Persisting History Across Sessions
-
-By default Cliprompt stores history in a temporary file.  To keep a persistent
-history you can set the `CLIPROMPT_HISTORY_FILE` environment variable:
+## Use another shell's history
 
 ```bash
-export CLIPROMPT_HISTORY_FILE=~/.cliprompt_history
-cliprompt
+cliprompt -s bash -f ~/.bash_history
+cliprompt -s fish -f ~/.local/share/fish/fish_history
+cliprompt -s powershell -f "$env:APPDATA/Microsoft/Windows/PowerShell/PSReadLine/ConsoleHost_history.txt"
 ```
 
-Now every invocation will read from and write to `~/.cliprompt_history`.
+Without `-f`, `$HISTFILE` is used, then the newest of the usual locations.
 
-## 3. Using a Custom Model
-
-If you have access to a different Claude model you can specify it with the
-`--model` flag:
+## Score against a different directory
 
 ```bash
-cliprompt --model claude-3-haiku-20240307
+cliprompt --cwd ~/code/web-app --explain    # npm scripts and git state of that project
+cliprompt --cwd /tmp --no-git               # ignore git entirely
 ```
 
-The engine will automatically use the chosen model for all completions.
-
-## 4. Batch Mode
-
-Cliprompt can process a list of commands from a file and output the suggested
-completions.  Create a file `commands.txt`:
-
-```
-git status
-python -m venv venv
-pip install -r requirements.txt
-```
-
-Run in batch mode:
+## Pipe it
 
 ```bash
-cliprompt --batch commands.txt
+cliprompt -n 1 git | head -1                # the single best git command
+cliprompt --format json | python -m json.tool
+cliprompt stats --json | python -c "import json,sys; print(json.load(sys.stdin)['entries'])"
 ```
 
-The output will be a numbered list of completions, one per line.
+## Shell glue
 
-## 5. Integrating with a Shell Prompt
-
-You can embed Cliprompt directly in your shell prompt by adding the following to
-`.bashrc` or `.zshrc`:
+Print the top suggestion on demand from bash or zsh:
 
 ```bash
-function _cliprompt_prompt() {
-  local suggestion=$(cliprompt --last-command)
-  if [[ -n $suggestion ]]; then
-    echo -e "\e[32m$ suggestion\e[0m"
-  fi
-}
-
-PROMPT_COMMAND=_cliprompt_prompt
+alias next='cliprompt -n 1 --format plain'
 ```
 
-Now after each command the shell will display the suggested next command in
-green.
+In PowerShell:
 
----
+```powershell
+function next { cliprompt -n 1 --format plain }
+```
 
-These examples cover the most common advanced use‑cases.  For a full list of
-options run `cliprompt --help`.
+Bash only writes history on exit, so run `history -a` first if you want commands from the
+current session to count.
