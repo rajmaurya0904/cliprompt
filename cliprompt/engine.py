@@ -119,7 +119,7 @@ def _git_adjust(command: str, git: Mapping[str, Any]) -> tuple[float, list[str]]
 
     if git.get("conflicted") and sub in {"status", "add", "merge", "rebase", "diff"}:
         add(0.9, "merge conflicts present")
-    if git.get("dirty") and sub in {"status", "diff", "add", "stash", "commit"}:
+    if git.get("dirty") and sub in {"status", "diff", "add", "stash"}:
         add(0.5, "uncommitted changes")
     if git.get("staged") and sub == "commit":
         add(0.6, "staged changes ready to commit")

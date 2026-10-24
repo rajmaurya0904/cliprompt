@@ -30,7 +30,7 @@ def test_plain_directory_has_no_kinds(tmp_path):
     ctx = get_context(tmp_path, use_git=False)
     assert ctx["kinds"] == []
     assert ctx["tools"] == []
-    assert ctx["git"] == {"is_repo": False}
+    assert ctx["git"] is None
     assert ctx["dir_name"] == tmp_path.name
 
 
@@ -70,7 +70,7 @@ def test_make_targets(tmp_path):
 
 def test_missing_directory_does_not_crash(tmp_path):
     ctx = get_context(tmp_path / "nope")
-    assert ctx["kinds"] == [] and ctx["git"]["is_repo"] is False
+    assert ctx["kinds"] == [] and ctx["git"] is None
 
 
 def test_prefix_and_last_command_are_recorded(tmp_path):

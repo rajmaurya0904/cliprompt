@@ -160,7 +160,7 @@ def get_context(
         "dir_name": folder.name,
         "kinds": kinds,
         "tools": sorted(tools),
-        "git": git_state(folder) if use_git and is_dir else {"is_repo": False},
+        "git": git_state(folder) if use_git and is_dir else None,  # None = not inspected
         "scripts": package_scripts(folder) if is_dir else [],
         "make_targets": make_targets(folder) if is_dir else [],
     }
